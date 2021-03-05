@@ -29,7 +29,7 @@ public class UserController {
     private UserService userService;
 
     @PostMapping
-    @ApiOperation(value = "Create a user")
+    @ApiOperation(value = "Create an user")
     public ResponseEntity<ResponseDTO<?>> create(@Valid @RequestBody CreateUserRequestDTO createUser,
             BindingResult result) {
         try {
@@ -39,6 +39,13 @@ public class UserController {
                         result.getFieldError().getDefaultMessage(), result.getFieldError().getRejectedValue());
                 ResponseDTO<ErrorResponseDTO<Object>> response = new ResponseDTO<ErrorResponseDTO<Object>>(
                         "user/invalid-data", "Dados inválidos", errorResponseDTO);
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            }
+
+            if (userService.findUserByEmail(createUser.getUserEmail()) != null) {
+                ResponseDTO<ShowUserResponseDTO> response = new ResponseDTO<ShowUserResponseDTO>(
+                        "user/user-already-exist", "Usuário já existente", null);
+
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
             }
 
