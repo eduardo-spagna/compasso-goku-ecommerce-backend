@@ -8,8 +8,8 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class CustomException extends RuntimeException {
-  private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-  private String message;
-  private HttpStatus httpStatus;
+    private String message;
+    private HttpStatus httpStatus;
 }
