@@ -4,6 +4,7 @@ import javax.validation.Valid;
 
 import com.compassouol.gokuecommerce.dtos.request.address.CreateAddressRequestDTO;
 import com.compassouol.gokuecommerce.dtos.response.ErrorResponseDTO;
+import com.compassouol.gokuecommerce.dtos.response.PaginationResponseDTO;
 import com.compassouol.gokuecommerce.dtos.response.ResponseDTO;
 import com.compassouol.gokuecommerce.dtos.response.address.ShowAddressResponseDTO;
 import com.compassouol.gokuecommerce.models.Address;
@@ -18,10 +19,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.annotations.ApiOperation;
@@ -69,6 +72,33 @@ public class AddressController {
             System.err.println("Erro ao criar o endereco: " + e.getMessage());
             ResponseDTO<ShowAddressResponseDTO> responseDTO = new ResponseDTO<ShowAddressResponseDTO>(
                     "address/error-creating", "Ocorreu um erro ao criar o endereco", null);
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseDTO);
+        }
+    }
+
+    @GetMapping
+    @ApiOperation(value = "List all addresses of the logged in user (or all addresses of all users if you are an administrator)")
+    public ResponseEntity<ResponseDTO<PaginationResponseDTO>> index(@RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer perPage,
+            @RequestParam(value = "search", required = false) String search,
+            @RequestHeader(value = "Authorization") String authorization) {
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            String userEmail = auth.getName();
+            User user = userService.findUserByEmail(userEmail);
+
+            PaginationResponseDTO response = addressService.findAllWithSearchAndPagination(page, perPage, search, user);
+
+            ResponseDTO<PaginationResponseDTO> responseDTO = new ResponseDTO<PaginationResponseDTO>(
+                    "address/successfully-searched", "Listagem de endereços realizada com sucesso",
+                    response);
+
+            return ResponseEntity.status(HttpStatus.OK).body(responseDTO);
+        } catch (Exception e) {
+            System.err.println("Erro ao listar os enderecos: " + e.getMessage());
+            ResponseDTO<PaginationResponseDTO> responseDTO = new ResponseDTO<PaginationResponseDTO>(
+                    "address/error-searching", "Ocorreu um erro ao listar os endereços", null);
 
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseDTO);
         }
