@@ -52,7 +52,13 @@ public class UserService {
         User createdUser = userRepository.save(user);
 
         List<Role> roles = new ArrayList<>();
-        roles.add(roleService.findRoleById(RoleEnum.ROLE_ADMIN.getRoleId()));
+
+        if (createUser.isAdmin() == true) {
+            roles.add(roleService.findRoleById(RoleEnum.ROLE_ADMIN.getRoleId()));
+        } else {
+            roles.add(roleService.findRoleById(RoleEnum.ROLE_COMMON_USER.getRoleId()));
+        }
+
         userRoleService.createUserRole(createdUser, roles);
 
         return createdUser;

@@ -4,6 +4,7 @@ import java.io.Serializable;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
 import io.swagger.annotations.ApiModelProperty;
@@ -32,4 +33,8 @@ public class CreateUserRequestDTO implements Serializable {
     @Size(min = 8, max = 20, message = "A senha de login do usuário deve conter no mínimo 8 e no máximo 20 caracteres")
     @ApiModelProperty(example = "12345678", required = true)
     private String userPassword;
+
+    @NotNull(message = "A informação de que o usuário é admin ou não é obrigatória")
+    @ApiModelProperty(example = "false", required = true)
+    private boolean admin;
 }
