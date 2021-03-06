@@ -2,6 +2,8 @@ package com.compassouol.gokuecommerce.controllers;
 
 import javax.validation.Valid;
 
+import com.compassouol.gokuecommerce.configurations.cache.CacheConfig;
+import com.compassouol.gokuecommerce.configurations.cache.CacheableKey;
 import com.compassouol.gokuecommerce.dtos.request.address.CreateAddressRequestDTO;
 import com.compassouol.gokuecommerce.dtos.response.ErrorResponseDTO;
 import com.compassouol.gokuecommerce.dtos.response.PaginationResponseDTO;
@@ -13,6 +15,8 @@ import com.compassouol.gokuecommerce.services.AddressService;
 import com.compassouol.gokuecommerce.services.UserService;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -38,6 +42,9 @@ public class AddressController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    CacheManager cacheManager;
 
     @PostMapping
     @ApiOperation(value = "Create an address for the logged in user")
@@ -77,22 +84,24 @@ public class AddressController {
         }
     }
 
+    @CacheableKey
+    @Cacheable(value = CacheConfig.cacheAddressesList, key = "#cacheableKey + #page + #perPage + #search")
     @GetMapping
     @ApiOperation(value = "List all addresses of the logged in user (or all addresses of all users if you are an administrator)")
-    public ResponseEntity<ResponseDTO<PaginationResponseDTO>> index(@RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "10") Integer perPage,
-            @RequestParam(value = "search", required = false) String search,
+    public ResponseEntity<ResponseDTO<PaginationResponseDTO>> index(@RequestParam(defaultValue = "1") String page,
+            @RequestParam(defaultValue = "10") String perPage,
+            @RequestParam(value = "search", defaultValue = "", required = false) String search,
             @RequestHeader(value = "Authorization") String authorization) {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             String userEmail = auth.getName();
             User user = userService.findUserByEmail(userEmail);
 
-            PaginationResponseDTO response = addressService.findAllWithSearchAndPagination(page, perPage, search, user);
+            PaginationResponseDTO response = addressService.findAllWithSearchAndPagination(Integer.parseInt(page),
+                    Integer.parseInt(perPage), search, user);
 
             ResponseDTO<PaginationResponseDTO> responseDTO = new ResponseDTO<PaginationResponseDTO>(
-                    "address/successfully-searched", "Listagem de endereços realizada com sucesso",
-                    response);
+                    "address/successfully-searched", "Listagem de endereços realizada com sucesso", response);
 
             return ResponseEntity.status(HttpStatus.OK).body(responseDTO);
         } catch (Exception e) {
