@@ -44,7 +44,7 @@ public class AuthenticationController {
 
             String token = authenticationService.signin(authRequest.getEmail(), authRequest.getPassword());
 
-            AuthenticationResponseDTO authenticationResponseDTO = new AuthenticationResponseDTO("Bearer", token);
+            AuthenticationResponseDTO authenticationResponseDTO = new AuthenticationResponseDTO("Bearer", "Bearer " + token);
 
             ResponseDTO<AuthenticationResponseDTO> response = new ResponseDTO<AuthenticationResponseDTO>(
                     "auth/successfully-authenticated", "Usuário autenticado com sucesso", authenticationResponseDTO);
